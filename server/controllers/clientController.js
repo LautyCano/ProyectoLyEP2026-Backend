@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 const Client = require('../models/clientModel');
 
-/**
- * Obtener todos los clientes
- * GET /api/clientes
- */
 const getAllClients = async (req, res) => {
   try {
     const clients = await Client.find();
@@ -17,10 +13,6 @@ const getAllClients = async (req, res) => {
   }
 };
 
-/**
- * Obtener un cliente por su ID
- * GET /api/clientes/:id
- */
 const getClientById = async (req, res) => {
   try {
     const { id } = req.params;
