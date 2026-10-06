@@ -1,19 +1,16 @@
 const mongoose = require('mongoose');
 const Client = require('../models/clientModel');
 
-const getAllClients = async (req, res) => {
+const getAllClients = async (req, res, next) => {
   try {
     const clients = await Client.find();
     return res.status(200).json(clients);
   } catch (error) {
-    return res.status(500).json({
-      message: 'Error al obtener los clientes',
-      error: error.message
-    });
+    next(error);
   }
 };
 
-const getClientById = async (req, res) => {
+const getClientById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -33,10 +30,7 @@ const getClientById = async (req, res) => {
 
     return res.status(200).json(client);
   } catch (error) {
-    return res.status(500).json({
-      message: 'Error al obtener el cliente',
-      error: error.message
-    });
+    next(error);
   }
 };
 
