@@ -4,13 +4,21 @@ const {
   getAllClients,
   getClientById,
   createClient,
-  updateClient
+  updateClient,
+  deleteClient
 } = require('../controllers/clientController');
+const {
+  validateClientId,
+  validateCreateClient,
+  validateUpdateClient
+} = require('../middleware/clientValidator');
 
 router.get('/', getAllClients);
-router.get('/:id', getClientById);
-router.post('/', createClient);
-router.put('/:id', updateClient);
+router.get('/:id', validateClientId, getClientById);
+router.post('/', validateCreateClient, createClient);
+router.put('/:id', validateClientId, validateUpdateClient, updateClient);
+router.delete('/:id', validateClientId, deleteClient);
 
 module.exports = router;
+
 

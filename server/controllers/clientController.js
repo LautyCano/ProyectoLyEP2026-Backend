@@ -67,7 +67,7 @@ const updateClient = async (req, res, next) => {
     const updatedClient = await Client.findByIdAndUpdate(
       id,
       { $set: req.body },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!updatedClient) {
@@ -82,10 +82,39 @@ const updateClient = async (req, res, next) => {
   }
 };
 
+const deleteClient = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        message: 'El ID proporcionado no tiene un formato válido de MongoDB'
+      });
+    }
+
+    const deletedClient = await Client.findByIdAndDelete(id);
+
+    if (!deletedClient) {
+      return res.status(404).json({
+        message: 'Cliente no encontrado'
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Cliente eliminado correctamente',
+      client: deletedClient
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllClients,
   getClientById,
   createClient,
-  updateClient
+  updateClient,
+  deleteClient
 };
+
 
