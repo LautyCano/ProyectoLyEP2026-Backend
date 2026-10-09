@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button, Modal, Spinner } from "react-bootstrap";
 import clientesService from "../services/clientesService";
 import useAutorizaciones from "../hooks/useAutorizaciones";
+import { obtenerMensajeError } from "../services/api";
 
 const DetalleCliente = () => {
   const { id } = useParams();
@@ -20,13 +21,9 @@ const DetalleCliente = () => {
   useEffect(() => {
     const cargarCliente = async () => {
       try {
-        const res = await clientesService.getClientePorId(id);
-        if (!res || (res.ok !== undefined && !res.ok)) {
-          throw new Error('No se pudo encontrar el cliente solicitado (Error ' + (res?.status || 404) + ')');
-        }
-        setCliente(res);
+        setCliente(await clientesService.getClientePorId(id));
       } catch (err) {
-        setError(err.message);
+        setError(obtenerMensajeError(err, "Error al cargar el detalle del cliente."));
       } finally {
         setLoading(false);
       }
@@ -51,7 +48,7 @@ const DetalleCliente = () => {
       setMensaje("Cliente eliminado correctamente. Volviendo a la lista...");
       setTimeout(() => navigate("/clientes"), 1500);
     } catch (err) {
-      setMensaje(`No se pudo eliminar el cliente: ${err.message}`);
+      setMensaje(`No se pudo eliminar el cliente: ${obtenerMensajeError(err, "Error desconocido.")}`);
       setEliminando(false);
     }
   };

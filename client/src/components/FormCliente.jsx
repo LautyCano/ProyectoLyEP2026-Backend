@@ -2,6 +2,7 @@ import '../css/formcliente.css'
 import { useState } from "react";
 import { Form, Button, Alert, Spinner } from "react-bootstrap";
 import clientesService from "../services/clientesService";
+import { obtenerMensajeError } from "../services/api";
 
 const FormCliente = ({ onClienteCreado }) => {
 
@@ -72,13 +73,8 @@ const FormCliente = ({ onClienteCreado }) => {
                     nuevoCliente
                 );
 
-            const clienteCreado = {
-                ...nuevoCliente,
-                id: respuesta?.id || Date.now()
-            };
-
             if (typeof onClienteCreado === "function") {
-                onClienteCreado(clienteCreado);
+                onClienteCreado(respuesta);
             }
 
             setMensaje(
@@ -90,11 +86,8 @@ const FormCliente = ({ onClienteCreado }) => {
             setTelefono("");
             setCiudad("");
 
-        } catch {
-
-            setError(
-                "Ocurrió un error al crear el cliente."
-            );
+        } catch (err) {
+            setError(obtenerMensajeError(err, "Ocurrió un error al crear el cliente."));
 
         } finally {
 

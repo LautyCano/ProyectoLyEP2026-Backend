@@ -3,28 +3,28 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import FormCliente from "../components/FormCliente";
 import clientesService from "../services/clientesService";
+import { obtenerMensajeError } from "../services/api";
 
 const ListaClientes = () => {
   const [clientes, setClientes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
 
-useEffect(() => {
-  const cargarClientes = async () => {
-    try {
-      // Usamos await para esperar a Axios
-      const data = await clientesService.getClientes();
-      setClientes(data);
-      setLoading(false);
-    } catch {
-      setError(true);
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const cargarClientes = async () => {
+      try {
+        const data = await clientesService.getClientes();
+        setClientes(data);
+      } catch (err) {
+        setError(obtenerMensajeError(err, "Error al cargar los clientes."));
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  cargarClientes();
-}, []);
+    cargarClientes();
+  }, []);
 
   const handleClienteCreado = (nuevoCliente) => {
     setClientes((prevClientes) => [nuevoCliente, ...prevClientes]);
@@ -45,7 +45,7 @@ useEffect(() => {
   }
 
   if (error) {
-    return <h2>Error al cargar los clientes.</h2>;
+    return <h2 role="alert">Error al cargar los clientes: {error}</h2>;
   }
 
   return (
