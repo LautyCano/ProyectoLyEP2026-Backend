@@ -4,8 +4,17 @@ import { Link } from "react-router-dom";
 import FormCliente from "../components/FormCliente";
 import clientesService from "../services/clientesService";
 import { obtenerMensajeError } from "../services/api";
+import useAutorizaciones from "../hooks/useAutorizaciones";
+
+const normalizarTextoBusqueda = (texto) =>
+  texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("es")
+    .trim();
 
 const ListaClientes = () => {
+  const { admin } = useAutorizaciones();
   const [clientes, setClientes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [loading, setLoading] = useState(true);
@@ -30,15 +39,27 @@ const ListaClientes = () => {
     setClientes((prevClientes) => [nuevoCliente, ...prevClientes]);
   };
 
-  const clientesFiltrados = clientes.filter(
-    (cliente) =>
-      cliente.name?.lastname
-        ?.toLowerCase()
-        .includes(busqueda.toLowerCase()) ||
-      cliente.address?.city
-        ?.toLowerCase()
-        .includes(busqueda.toLowerCase())
-  );
+  const terminosBusqueda = normalizarTextoBusqueda(busqueda)
+    .split(/\s+/)
+    .filter(Boolean);
+
+  const clientesFiltrados = clientes.filter((cliente) => {
+    const textoCliente = normalizarTextoBusqueda(
+      [
+        cliente.id,
+        cliente.name?.firstname,
+        cliente.name?.lastname,
+        cliente.email,
+        cliente.phone,
+        cliente.address?.city,
+        cliente.username,
+      ]
+        .filter(Boolean)
+        .join(" ")
+    );
+
+    return terminosBusqueda.every((termino) => textoCliente.includes(termino));
+  });
 
   if (loading) {
     return <h2>Cargando clientes...</h2>;
@@ -65,7 +86,7 @@ const ListaClientes = () => {
         <input
           className="buscador"
           type="text"
-          placeholder="Buscar por apellido o ciudad"
+          placeholder="Buscar por nombre, email, teléfono, ciudad o ID"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
@@ -106,12 +127,23 @@ const ListaClientes = () => {
               <td>{cliente.address?.city}</td>
 
               <td>
-                <Link
-                  className="btn-ficha"
-                  to={`/clientes/${cliente.id}`}
-                >
-                  Ver Ficha Completa
-                </Link>
+                <div className="acciones-cliente">
+                  <Link
+                    className="btn-ficha"
+                    to={`/clientes/${cliente.id}`}
+                  >
+                    Ver Ficha Completa
+                  </Link>
+                  {admin?.sector?.trim() === "Gerencia" && (
+                    <Link
+                      className="btn-editar-ficha"
+                      to={`/clientes/${cliente.id}`}
+                      state={{ abrirEdicion: true, cliente }}
+                    >
+                      Editar
+                    </Link>
+                  )}
+                </div>
               </td>
 
             </tr>

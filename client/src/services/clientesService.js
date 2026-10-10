@@ -70,6 +70,14 @@ const getClientePorId = async (id) => {
   return normalizarCliente(respuesta.data);
 };
 
+const editarCliente = async (id, datosCliente) => {
+  const respuesta = await api.put(
+    `/clientes/${encodeURIComponent(id)}`,
+    datosCliente
+  );
+  return normalizarCliente(respuesta.data);
+};
+
 const eliminarCliente = async (id) => {
   const respuesta = await api.delete(`/clientes/${encodeURIComponent(id)}`);
   if (
@@ -87,5 +95,6 @@ export default {
   crearCliente,
   getClientes,
   getClientePorId,
+  editarCliente,
   eliminarCliente,
 };

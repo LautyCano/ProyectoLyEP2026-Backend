@@ -2,6 +2,8 @@
 
 Frontend desarrollado con React y Vite. Para mostrar y administrar clientes se conecta a la API del proyecto ubicada en `../server`.
 
+La interfaz permite listar, consultar y crear clientes. Los usuarios de Gerencia también pueden editar y eliminar clientes desde la ficha individual.
+
 ## Requisitos
 
 - Node.js y npm.
