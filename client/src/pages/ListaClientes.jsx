@@ -3,49 +3,70 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import FormCliente from "../components/FormCliente";
 import clientesService from "../services/clientesService";
+import { obtenerMensajeError } from "../services/api";
+import useAutorizaciones from "../hooks/useAutorizaciones";
+
+const normalizarTextoBusqueda = (texto) =>
+  texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("es")
+    .trim();
 
 const ListaClientes = () => {
+  const { admin } = useAutorizaciones();
   const [clientes, setClientes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
 
-useEffect(() => {
-  const cargarClientes = async () => {
-    try {
-      // Usamos await para esperar a Axios
-      const data = await clientesService.getClientes();
-      setClientes(data);
-      setLoading(false);
-    } catch {
-      setError(true);
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const cargarClientes = async () => {
+      try {
+        const data = await clientesService.getClientes();
+        setClientes(data);
+      } catch (err) {
+        setError(obtenerMensajeError(err, "Error al cargar los clientes."));
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  cargarClientes();
-}, []);
+    cargarClientes();
+  }, []);
 
   const handleClienteCreado = (nuevoCliente) => {
     setClientes((prevClientes) => [nuevoCliente, ...prevClientes]);
   };
 
-  const clientesFiltrados = clientes.filter(
-    (cliente) =>
-      cliente.name?.lastname
-        ?.toLowerCase()
-        .includes(busqueda.toLowerCase()) ||
-      cliente.address?.city
-        ?.toLowerCase()
-        .includes(busqueda.toLowerCase())
-  );
+  const terminosBusqueda = normalizarTextoBusqueda(busqueda)
+    .split(/\s+/)
+    .filter(Boolean);
+
+  const clientesFiltrados = clientes.filter((cliente) => {
+    const textoCliente = normalizarTextoBusqueda(
+      [
+        cliente.id,
+        cliente.name?.firstname,
+        cliente.name?.lastname,
+        cliente.email,
+        cliente.phone,
+        cliente.address?.city,
+        cliente.username,
+      ]
+        .filter(Boolean)
+        .join(" ")
+    );
+
+    return terminosBusqueda.every((termino) => textoCliente.includes(termino));
+  });
 
   if (loading) {
     return <h2>Cargando clientes...</h2>;
   }
 
   if (error) {
-    return <h2>Error al cargar los clientes.</h2>;
+    return <h2 role="alert">Error al cargar los clientes: {error}</h2>;
   }
 
   return (
@@ -65,7 +86,7 @@ useEffect(() => {
         <input
           className="buscador"
           type="text"
-          placeholder="Buscar por apellido o ciudad"
+          placeholder="Buscar por nombre, email, teléfono, ciudad o ID"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
@@ -106,12 +127,23 @@ useEffect(() => {
               <td>{cliente.address?.city}</td>
 
               <td>
-                <Link
-                  className="btn-ficha"
-                  to={`/clientes/${cliente.id}`}
-                >
-                  Ver Ficha Completa
-                </Link>
+                <div className="acciones-cliente">
+                  <Link
+                    className="btn-ficha"
+                    to={`/clientes/${cliente.id}`}
+                  >
+                    Ver Ficha Completa
+                  </Link>
+                  {admin?.sector?.trim() === "Gerencia" && (
+                    <Link
+                      className="btn-editar-ficha"
+                      to={`/clientes/${cliente.id}`}
+                      state={{ abrirEdicion: true, cliente }}
+                    >
+                      Editar
+                    </Link>
+                  )}
+                </div>
               </td>
 
             </tr>

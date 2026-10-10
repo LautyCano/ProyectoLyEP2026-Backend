@@ -45,6 +45,11 @@
     background:#bb2d3b;
     transform:scale(1.02);
 }
+.btn-editar-cliente{
+    margin-top:25px;
+    width:100%;
+    font-weight:600;
+}
 .mensaje-eliminado{
     background:#d4edda;
     color:#155724;
